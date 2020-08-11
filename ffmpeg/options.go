@@ -7,6 +7,7 @@ import (
 
 // Options defines allowed FFmpeg arguments
 type Options struct {
+	ExtraInput            *string           `flag:"-i"`
 	Aspect                *string           `flag:"-aspect"`
 	Resolution            *string           `flag:"-s"`
 	VideoBitRate          *string           `flag:"-b:v"`
@@ -65,6 +66,7 @@ type Options struct {
 	PixFmt                *string           `flag:"-pix_fmt"`
 	WhiteListProtocols    []string          `flag:"-protocol_whitelist"`
 	Overwrite             *bool             `flag:"-y"`
+	Chapters              *string           `flag:"-map_chapters"`
 	ExtraArgs             map[string]interface{}
 }
 
