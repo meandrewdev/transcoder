@@ -98,6 +98,14 @@ func (t *Transcoder) Start(opts transcoder.Options) (<-chan transcoder.Progress,
 	return out, nil
 }
 
+// Probe ...
+func (t *Transcoder) Probe() []string {
+	t.getMetadata()
+	video := t.metadata.Streams[0]
+	audio := t.metadata.Streams[1]
+	return []string{video.CodecName, fmt.Sprintf("%v", video.Width), fmt.Sprintf("%v", video.Height), audio.CodecName}
+}
+
 // Input ...
 func (t *Transcoder) Input(arg string) transcoder.Transcoder {
 	t.input = arg
