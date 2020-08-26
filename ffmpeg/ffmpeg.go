@@ -199,7 +199,7 @@ func (t *Transcoder) getMetadata() (metadata *Metadata, err error) {
 }
 
 // progress sends through given channel the transcoding status
-func (t *Transcoder) progress(stream io.ReadCloser, out chan *transcoder.Progress) {
+func (t *Transcoder) progress(stream io.ReadCloser, out chan transcoder.Progress) {
 
 	defer stream.Close()
 
@@ -279,7 +279,7 @@ func (t *Transcoder) progress(stream io.ReadCloser, out chan *transcoder.Progres
 			Progress.CurrentTime = currentTime
 			Progress.Speed = currentSpeed
 
-			out <- *Progress
+			out <- Progress
 		}
 	}
 }
