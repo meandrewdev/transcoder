@@ -14,14 +14,14 @@ type Options struct {
 	VideoBitRateTolerance *int              `flag:"-bt"`
 	VideoMaxBitRate       *int              `flag:"-maxrate"`
 	VideoMinBitrate       *int              `flag:"-minrate"`
-	VideoCodec            *string           `flag:"--c:v"`
+	VideoCodec            *string           `flag:"-c:v"`
 	Vframes               *int              `flag:"-vframes"`
 	FrameRate             *int              `flag:"-r"`
 	AudioRate             *int              `flag:"-ar"`
 	KeyframeInterval      *int              `flag:"-g"`
 	AudioCodec            *string           `flag:"-c:a"`
 	AudioBitrate          *string           `flag:"-ab"`
-	AudioChannels         *int              `flag:"-ac"`
+	AudioChannels         *string           `flag:"-ac"`
 	AudioVariableBitrate  *bool             `flag:"-q:a"`
 	BufferSize            *int              `flag:"-bufsize"`
 	Threadset             *bool             `flag:"-threads"`

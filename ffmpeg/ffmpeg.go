@@ -283,7 +283,7 @@ func (t *Transcoder) progress(stream io.ReadCloser, out chan transcoder.Progress
 			Progress.CurrentTime = currentTime
 			Progress.Speed = currentSpeed
 
-			out <- Progress
+			out <- *Progress
 		}
 	}
 }

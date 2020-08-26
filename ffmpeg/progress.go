@@ -10,6 +10,6 @@ type Progress struct {
 }
 
 // GetPercent ...
-func (p *Progress) GetPercent() float64 {
+func (p Progress) GetPercent() float64 {
 	return p.Progress
 }
