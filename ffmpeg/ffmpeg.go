@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"os/exec"
 	"regexp"
@@ -100,7 +101,10 @@ func (t *Transcoder) Start(opts transcoder.Options) (<-chan transcoder.Progress,
 
 // Probe ...
 func (t *Transcoder) Probe() map[string]interface{} {
-	t.getMetadata()
+	_, err := t.getMetadata()
+	if err != nil {
+		log.Fatal(err)
+	}
 	video := t.metadata.Streams[0]
 	audio := t.metadata.Streams[1]
 	return map[string]interface{}{
