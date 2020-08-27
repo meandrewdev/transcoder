@@ -8,6 +8,7 @@ import (
 // Options defines allowed FFmpeg arguments
 type Options struct {
 	ExtraInput            *string           `flag:"-i"`
+	FilterComplex		  *string			`flag:"-filter_complex"`
 	Aspect                *string           `flag:"-aspect"`
 	Resolution            *string           `flag:"-s"`
 	VideoBitRate          *string           `flag:"-b:v"`
