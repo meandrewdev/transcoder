@@ -3,12 +3,12 @@ package ffmpeg
 import (
 	"fmt"
 	"reflect"
+	"strings"
 )
 
 // Options defines allowed FFmpeg arguments
 type Options struct {
-	ExtraInput            *string           `flag:"-i"`
-	FilterComplex		  *string			`flag:"-filter_complex"`
+	FilterComplex         *string           `flag:"-filter_complex"`
 	Aspect                *string           `flag:"-aspect"`
 	Resolution            *string           `flag:"-s"`
 	VideoBitRate          *string           `flag:"-b:v"`
@@ -38,10 +38,13 @@ type Options struct {
 	Strict                *int              `flag:"-strict"`
 	MuxDelay              *string           `flag:"-muxdelay"`
 	SeekTime              *string           `flag:"-ss"`
+	SeekTimeTo            *string           `flag:"-to"`
 	SeekUsingTimestamp    *bool             `flag:"-seek_timestamp"`
 	MovFlags              *string           `flag:"-movflags"`
 	HideBanner            *bool             `flag:"-hide_banner"`
 	OutputFormat          *string           `flag:"-f"`
+	InputFormat           *string           `flag:"-f"`
+	InputSafe             *string           `flag:"-safe"`
 	CopyTs                *bool             `flag:"-copyts"`
 	NativeFramerateInput  *bool             `flag:"-re"`
 	InputInitialOffset    *string           `flag:"-itsoffset"`
@@ -68,23 +71,45 @@ type Options struct {
 	WhiteListProtocols    []string          `flag:"-protocol_whitelist"`
 	Overwrite             *bool             `flag:"-y"`
 	Chapters              *string           `flag:"-map_chapters"`
-	ExtraArgs             map[string]interface{}
+	Map                   []string          `flag:"-map"`
+	OutputExtraArgs       map[string]interface{}
+	Shortest              *bool `flag:"-shortest"`
+	InputExtraArgs        map[string]interface{}
+	Inputs                []string `flag:"-i"`
+}
+
+func (opts Options) GetInputs() []string {
+	return opts.Inputs
 }
 
 // GetStrArguments ...
 func (opts Options) GetStrArguments() []string {
+	return append(opts.getStrArguments("Input", ""), opts.getStrArguments("", "Input")...)
+}
+
+func (opts Options) getStrArguments(includePrefix string, excludePrefix string) []string {
 	f := reflect.TypeOf(opts)
 	v := reflect.ValueOf(opts)
 
 	values := []string{}
 
 	for i := 0; i < f.NumField(); i++ {
+		field := v.Field(i)
+		name := f.Field(i).Name
+
+		if includePrefix != "" && !strings.HasPrefix(name, includePrefix) {
+			continue
+		}
+
+		if excludePrefix != "" && strings.HasPrefix(name, excludePrefix) {
+			continue
+		}
+
 		flag := f.Field(i).Tag.Get("flag")
-		value := v.Field(i).Interface()
+		value := field.Interface()
 
-		if !v.Field(i).IsNil() {
-
-			if _, ok := value.(*bool); ok {
+		if !field.IsNil() {
+			if vb, ok := value.(*bool); ok && *vb {
 				values = append(values, flag)
 			}
 
@@ -92,8 +117,15 @@ func (opts Options) GetStrArguments() []string {
 				values = append(values, flag, *vs)
 			}
 
-			if va, ok := value.([]string); ok {
+			if vi, ok := value.(*int); ok {
+				values = append(values, flag, fmt.Sprintf("%d", *vi))
+			}
 
+			if vi, ok := value.(*uint32); ok {
+				values = append(values, flag, fmt.Sprintf("%d", *vi))
+			}
+
+			if va, ok := value.([]string); ok {
 				for i := 0; i < len(va); i++ {
 					item := va[i]
 					values = append(values, flag, item)
@@ -106,80 +138,13 @@ func (opts Options) GetStrArguments() []string {
 				}
 			}
 
+			if vm, ok := value.(map[string]interface{}); ok {
+				for k, v := range vm {
+					values = append(values, k, fmt.Sprintf("%v", v))
+				}
+			}
 		}
 	}
 
 	return values
-}
-
-// Metadata ...
-type Metadata struct {
-	Streams []Streams `json:"streams"`
-	Format  Format    `json:"format"`
-}
-
-// Streams defines allowed stream options
-type Streams struct {
-	Index              int
-	ID                 string      `json:"id"`
-	CodecName          string      `json:"codec_name"`
-	CodecLongName      string      `json:"codec_long_name"`
-	Profile            string      `json:"profile"`
-	CodecType          string      `json:"codec_type"`
-	CodecTimeBase      string      `json:"codec_time_base"`
-	CodecTagString     string      `json:"codec_tag_string"`
-	CodecTag           string      `json:"codec_tag"`
-	Width              int         `json:"width"`
-	Height             int         `json:"height"`
-	CodedWidth         int         `json:"coded_width"`
-	CodedHeight        int         `json:"coded_height"`
-	HasBFrames         int         `json:"has_b_frames"`
-	SampleAspectRatio  string      `json:"sample_aspect_ratio"`
-	DisplayAspectRatio string      `json:"display_aspect_ratio"`
-	PixFmt             string      `json:"pix_fmt"`
-	Level              int         `json:"level"`
-	ChromaLocation     string      `json:"chroma_location"`
-	Refs               int         `json:"refs"`
-	QuarterSample      string      `json:"quarter_sample"`
-	DivxPacked         string      `json:"divx_packed"`
-	RFrameRrate        string      `json:"r_frame_rate"`
-	AvgFrameRate       string      `json:"avg_frame_rate"`
-	TimeBase           string      `json:"time_base"`
-	DurationTs         int         `json:"duration_ts"`
-	Duration           string      `json:"duration"`
-	Disposition        Disposition `json:"disposition"`
-	BitRate            string      `json:"bit_rate"`
-}
-
-// Disposition ...
-type Disposition struct {
-	Default         int `json:"default"`
-	Dub             int `json:"dub"`
-	Original        int `json:"original"`
-	Comment         int `json:"comment"`
-	Lyrics          int `json:"lyrics"`
-	Karaoke         int `json:"karaoke"`
-	Forced          int `json:"forced"`
-	HearingImpaired int `json:"hearing_impaired"`
-	VisualImpaired  int `json:"visual_impaired"`
-	CleanEffects    int `json:"clean_effects"`
-}
-
-// Format ...
-type Format struct {
-	Filename       string
-	NbStreams      int    `json:"nb_streams"`
-	NbPrograms     int    `json:"nb_programs"`
-	FormatName     string `json:"format_name"`
-	FormatLongName string `json:"format_long_name"`
-	Duration       string `json:"duration"`
-	Size           string `json:"size"`
-	BitRate        string `json:"bit_rate"`
-	ProbeScore     int    `json:"probe_score"`
-	Tags           Tags   `json:"tags"`
-}
-
-// Tags ...
-type Tags struct {
-	Encoder string `json:"ENCODER"`
 }
