@@ -9,7 +9,7 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/confirm2315/transcoder"
+	"github.com/meandrewdev/transcoder"
 )
 
 // Transcoder ...
