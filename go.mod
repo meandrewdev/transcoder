@@ -1,3 +1,3 @@
-module github.com/confirm2315/transcoder
+module github.com/meandrewdev/transcoder
 
 go 1.13
